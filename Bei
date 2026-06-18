@@ -1,14 +1,14 @@
 -- ================== 开场动画部分 ==================
 local TweenService = game:GetService("TweenService")
-本地玩家 = 游戏：获取服务（“玩家”）
-本地的 Run Service在你的面前
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local existing = PlayerGui:FindFirstChild("CustomBoot_SkinHub")
-如果存在则存在：Destroy（）end
+if existing then existing:Destroy() end
 
-本地 screenGui=Instance
+local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CustomBoot_SkinHub"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
@@ -16,7 +16,7 @@ screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.DisplayOrder = 999
 screenGui.Parent = PlayerGui
 
-本地 blackBg=Instance
+local blackBg = Instance.new("Frame")
 blackBg.Size = UDim2.new(1,0,1,0)
 blackBg.BackgroundColor3 = Color3.new(0,0,0)
 blackBg.BorderSizePixel = 0
@@ -27,13 +27,383 @@ local scale = math.min(camera.ViewportSize.X, camera.ViewportSize.Y) / 1080
 
 task.wait(0.5)
 
-本地 DOT_COUNT=42
-局部环_MAX_RADIUS=360****
+local DOT_COUNT = 42
+local RING_MAX_RADIUS = 360 * scale
 local GLOW_DURATION = 0.9
 local LIGHT_BLUE = Color3.fromRGB(135, 206, 250)
 
-本地 dotsContainer=Instance
+local dotsContainer = Instance.new("Frame")
 dotsContainer.Size = UDim2.new(0,0,0,0)
+dotsContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
+dotsContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+dotsContainer.BackgroundTransparency = 1
+dotsContainer.Parent = screenGui
+
+local dots = {}
+for i = 1, DOT_COUNT do
+    local dotObj = Instance.new("Frame")
+    dotObj.Size = UDim2.fromOffset(7*scale, 7*scale)
+    dotObj.BackgroundColor3 = LIGHT_BLUE
+    dotObj.BorderSizePixel = 0
+    dotObj.Position = UDim2.fromOffset(0, 0)
+    dotObj.AnchorPoint = Vector2.new(0.5, 0.5)
+    local cornerObj = Instance.new("UICorner")
+    cornerObj.CornerRadius = UDim.new(1, 0)
+    cornerObj.Parent = dotObj
+    dotObj.Parent = dotsContainer
+    dots[i] = dotObj
+end
+
+local function playRingGlow()
+    local startTime = tick()
+    local conn
+    conn = RunService.RenderStepped:Connect(function()
+        local elapsed = tick() - startTime
+        if elapsed >= GLOW_DURATION then
+            conn:Disconnect()
+            dotsContainer:Destroy()
+            return
+        end
+        local p = elapsed / GLOW_DURATION
+        local smoothP = p < 0.5 and (2 * p * p) or (1 - math.pow(-2 * p + 2, 2) / 2)
+        local radius = RING_MAX_RADIUS * smoothP
+        local angleOffset = math.rad(elapsed * 540)
+        local angleStep = (math.pi * 2) / DOT_COUNT
+        for i, dotObj in ipairs(dots) do
+            local a = angleOffset + i * angleStep
+            local alpha = 1 - math.abs((i - DOT_COUNT / 2) / (DOT_COUNT / 2))
+            alpha = alpha * 0.85 + 0.15
+            if p > 0.7 then
+                alpha = alpha * (1 - (p - 0.7) / 0.3)
+            end
+            local x = math.cos(a) * radius
+            local y = math.sin(a) * radius
+            dotObj.Position = UDim2.fromOffset(x, y)
+            dotObj.BackgroundTransparency = 1 - alpha
+        end
+    end)
+end
+
+playRingGlow()
+
+local textContainer = Instance.new("Frame")
+textContainer.Size = UDim2.new(0, 700*scale, 0, 120*scale)
+textContainer.Position = UDim2.new(0.5, -350*scale, 0.5, -60*scale)
+textContainer.BackgroundTransparency = 1
+textContainer.Visible = true
+textContainer.Parent = screenGui
+
+local letters = {"P", "r", "o", "M", "a", "x", "版"}
+local letterObjs = {}
+local letterWidth = 85 * scale
+local letterHeight = 100 * scale
+local totalWidth = #letters * letterWidth
+local startX = -totalWidth / 2
+
+for i, ch in ipairs(letters) do
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0, letterWidth, 0, letterHeight)
+    lbl.Position = UDim2.new(0.5, startX + (i-1)*letterWidth, 0.5, -50*scale)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = ch
+    lbl.TextColor3 = Color3.new(0.2,0.2,0.2)
+    lbl.TextSize = 80 * scale
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextScaled = false
+    lbl.Parent = textContainer
+    lbl.TextTransparency = 0.8
+    letterObjs[i] = lbl
+end
+
+task.wait(0.2)
+for _, lbl in ipairs(letterObjs) do
+    TweenService:Create(lbl, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+end
+task.wait(GLOW_DURATION)
+
+local sweepBar = Instance.new("Frame")
+sweepBar.Size = UDim2.new(0, 60*scale, 0, 160*scale)
+sweepBar.Position = UDim2.new(0.5, startX - 80*scale, 0.5, -80*scale)
+sweepBar.BackgroundColor3 = Color3.new(1,1,1)
+sweepBar.BackgroundTransparency = 0.8
+sweepBar.BorderSizePixel = 0
+local barCorner = Instance.new("UICorner")
+barCorner.CornerRadius = UDim.new(0, 8*scale)
+barCorner.Parent = sweepBar
+local barGrad = Instance.new("UIGradient")
+barGrad.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 0.9),
+    NumberSequenceKeypoint.new(0.5, 0.2),
+    NumberSequenceKeypoint.new(1, 0.9)
+})
+barGrad.Parent = sweepBar
+sweepBar.Parent = screenGui
+
+local sweepDuration = 1.8
+local targetX = startX + totalWidth + 40*scale
+local sweepMove = TweenService:Create(sweepBar, TweenInfo.new(sweepDuration, Enum.EasingStyle.Linear), {
+    Position = UDim2.new(0.5, targetX, 0.5, -80*scale)
+})
+sweepMove:Play()
+
+local startTimeSweep = tick()
+local transConn
+transConn = RunService.RenderStepped:Connect(function()
+    if not sweepBar or not sweepBar.Parent then
+        if transConn then transConn:Disconnect() end
+        return
+    end
+    local elapsed = tick() - startTimeSweep
+    local t = math.min(1, elapsed / sweepDuration)
+    local alpha = 0.8 + 0.5 * math.sin(t * math.pi)
+    sweepBar.BackgroundTransparency = alpha
+    if t >= 1 then
+        transConn:Disconnect()
+        TweenService:Create(sweepBar, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+        task.delay(0.2, function() if sweepBar then sweepBar:Destroy() end end)
+    end
+end)
+
+sweepMove.Completed:Connect(function()
+    if transConn then transConn:Disconnect() end
+    if sweepBar then
+        TweenService:Create(sweepBar, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+        task.delay(0.2, function() if sweepBar then sweepBar:Destroy() end end)
+    end
+end)
+
+local triggered = {}
+for i = 1, #letters do
+    triggered[i] = false
+end
+
+local conn2
+conn2 = RunService.RenderStepped:Connect(function()
+    if not sweepBar or not sweepBar.Parent then
+        if conn2 then conn2:Disconnect() end
+        return
+    end
+    local barLeft = sweepBar.AbsolutePosition.X
+    local barRight = barLeft + sweepBar.AbsoluteSize.X
+    for i = 1, #letters do
+        if not triggered[i] then
+            local lbl = letterObjs[i]
+            if lbl and lbl.Parent then
+                local left = lbl.AbsolutePosition.X
+                local right = left + lbl.AbsoluteSize.X
+                if barRight > left and barLeft < right then
+                    triggered[i] = true
+                    TweenService:Create(lbl, TweenInfo.new(0.08), {TextColor3 = Color3.new(1,1,1)}):Play()
+                    local origPos = lbl.Position
+                    local jump = TweenService:Create(lbl, TweenInfo.new(0.12, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                        Position = UDim2.new(origPos.X.Scale, origPos.X.Offset, origPos.Y.Scale, origPos.Y.Offset - 8*scale)
+                    })
+                    jump:Play()
+                    task.delay(0.1, function()
+                        if lbl and lbl.Parent then TweenService:Create(lbl, TweenInfo.new(0.08), {Position = origPos}):Play() end
+                    end)
+                end
+            end
+        end
+    end
+    local lastLbl = letterObjs[#letters]
+    if lastLbl and lastLbl.Parent then
+        local lastRight = lastLbl.AbsolutePosition.X + lastLbl.AbsoluteSize.X
+        if barRight >= lastRight then
+            if conn2 then conn2:Disconnect() end
+        end
+    end
+end)
+
+task.wait(sweepDuration + 0.3)
+for i = 1, #letters do
+    if not triggered[i] then
+        local lbl = letterObjs[i]
+        if lbl then TweenService:Create(lbl, TweenInfo.new(0.08), {TextColor3 = Color3.new(1,1,1)}):Play() end
+    end
+end
+
+task.wait(0.5)
+for _, lbl in ipairs(letterObjs) do
+    TweenService:Create(lbl, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+end
+task.wait(0.3)
+textContainer.Visible = false
+
+local shiftUp = -20 * scale
+local liuFinalY = (-40 * scale) + shiftUp
+local harmonyY = (0.65 - 0.5) * camera.ViewportSize.Y + shiftUp
+local lineStartY = (liuFinalY + harmonyY) / 2
+local lineEndY = lineStartY + 40 * scale
+
+local charWidth = 90 * scale
+local spacing = 30 * scale
+local totalWidthChars = charWidth * 3 + spacing * 2
+local startX_chars = -totalWidthChars / 2
+local offsets = {startX_chars, startX_chars + charWidth + spacing, startX_chars + (charWidth + spacing)*2}
+
+local shortLineWidth = totalWidthChars + 40 * scale
+local longLineWidth = 500 * scale
+local shortOffset = -shortLineWidth / 2
+local longOffset = -longLineWidth / 2
+
+local line = Instance.new("Frame")
+line.Size = UDim2.new(0, shortLineWidth, 0, 6*scale)
+line.Position = UDim2.new(0.5, shortOffset, 0.5, lineStartY)
+line.BackgroundColor3 = Color3.new(1,1,1)
+line.BackgroundTransparency = 0
+line.BorderSizePixel = 0
+local lineCorner = Instance.new("UICorner")
+lineCorner.CornerRadius = UDim.new(1,0)
+lineCorner.Parent = line
+line.Parent = screenGui
+
+local chars = {"悲观", "T", "厌世"}
+local charLabels = {}
+local initY = lineStartY - 50*scale
+for i=1,3 do
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0, charWidth, 0, 100*scale)
+    lbl.Position = UDim2.new(0.5, offsets[i], 0.5, initY)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = chars[i]
+    lbl.TextColor3 = Color3.new(1,1,1)
+    lbl.TextSize = 80 * scale
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextScaled = false
+    lbl.TextTransparency = 0.8
+    lbl.Parent = screenGui
+    charLabels[i] = lbl
+end
+
+local finalSizes = {
+    UDim2.new(0, charWidth, 0, 110*scale),
+    UDim2.new(0, charWidth, 0, 110*scale),
+    UDim2.new(0, charWidth, 0, 110*scale)
+}
+
+for i=1,3 do
+    TweenService:Create(charLabels[i], TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size = finalSizes[i],
+        TextTransparency = 0,
+        Position = UDim2.new(0.5, offsets[i], 0.5, lineStartY - 60*scale)
+    }):Play()
+end
+
+TweenService:Create(line, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, longLineWidth, 0, 6*scale),
+    Position = UDim2.new(0.5, longOffset, 0.5, lineEndY)
+}):Play()
+
+-- 停留 3 秒后销毁
+task.wait(3)
+screenGui:Destroy()
+
+-- ================== 原脚本从此处开始执行 ==================
+local HttpService = cloneref(game:GetService("HttpService"))
+local isfunctionhooked = clonefunction(isfunctionhooked)
+if isfunctionhooked(game.HttpGet) or isfunctionhooked(getnamecallmethod) or isfunctionhooked(request) then 
+    return 
+end
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+local StarterGui = game:GetService("StarterGui")
+local VirtualUser = game:GetService("VirtualUser")
+local LocalPlayer = Players.LocalPlayer
+local CurrentCamera = Workspace.CurrentCamera
+
+local UI_Library_URL = "https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"
+local WindUI = loadstring(game:HttpGet(UI_Library_URL))()
+
+local Window = WindUI:CreateWindow({
+    Title = "<font color='#B0E0E6'>BEI Hub｜Pro Max</font><font color='#B0E0E6'></font>",
+    Icon = "rbxassetid://4483362748",
+    IconTransparency = 1,
+    Author = "<font color='#B0E0E6'>请选择您的服务器</font>",
+    Folder = "BEI Hub｜Pro Max",
+    Size = UDim2.fromOffset(500, 100),
+    Transparent = true,
+    Theme = "Dark",
+    UserEnabled = true,
+    SideBarWidth = 200,
+    HasOutline = true,
+    Background = "https://github.com/zxcywtywt/BEI/blob/main/Image_1781743302291_741.jpg",
+    User = {
+        Enabled = true,
+        Anonymous = false,
+        Player = LocalPlayer,
+        Callback = function()
+            WindUI:Notify({
+                Title = "用户资料",
+                Content = "你点击了自己的头像！",
+                Duration = 3
+            })
+        end
+    }
+})
+
+Window:Tag({
+    Title = "v0.01",
+    Color = Color3.fromHex("#FFD700")
+})
+
+Window:CreateTopbarButton("theme-switcher", "moon", function()
+    WindUI:SetTheme(WindUI:GetCurrentTheme() == "Indigo" and "Dark" or "Indigo")
+    WindUI:Notify({
+        Title = "主题已更改",
+        Content = "当前主题："..WindUI:GetCurrentTheme(),
+        Duration = 2
+    })
+end, 990)
+
+local MainMenuSection = Window:Section({
+    Title = "脚本介绍",
+    Opened = false
+})
+
+local NoticeTab = MainMenuSection:Tab({
+    Title = "制作人员",
+    Icon = "globe"
+})
+
+local PlayerInfoTab = MainMenuSection:Tab({
+    Title = "玩家信息",
+    Icon = "user"
+})
+
+local BroyerInfoTab = MainMenuSection:Tab({
+    Title = "通知",
+    Icon = "bell"
+})
+
+local Tab_jbl = Window:Tab({
+    ["Locked"] = false,
+    ["Title"] = "瞄准",
+    ["Icon"] = "target",
+})
+
+local Tab_jb = Window:Tab({
+    ["Locked"] = false,
+    ["Title"] = "翻译",
+    ["Icon"] = "zap",
+})
+
+local Tab_Notice = Window:Tab({
+    ["Locked"] = false,
+    ["Title"] = "游戏",
+    ["Icon"] = "rocket",
+})
+
+local Tab_Botice = Window:Tab({
+    ["Locked"] = false,
+    ["Title"] = "设置",
+    ["Icon"] = "settings",
+})
+
+Window:Divider()
 dotsContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
 dotsContainer.AnchorPoint = Vector2.new(0.5, 0.5)
 dotsContainer.BackgroundTransparency = 1
