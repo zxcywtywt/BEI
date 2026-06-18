@@ -1,14 +1,14 @@
 -- ================== 开场动画部分 ==================
 local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+本地玩家 = 游戏：获取服务（“玩家”）
+本地的 Run Service在你的面前
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local existing = PlayerGui:FindFirstChild("CustomBoot_SkinHub")
-if existing then existing:Destroy() end
+如果存在则存在：Destroy（）end
 
-local screenGui = Instance.new("ScreenGui")
+本地 screenGui=Instance
 screenGui.Name = "CustomBoot_SkinHub"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
@@ -16,7 +16,7 @@ screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.DisplayOrder = 999
 screenGui.Parent = PlayerGui
 
-local blackBg = Instance.new("Frame")
+本地 blackBg=Instance
 blackBg.Size = UDim2.new(1,0,1,0)
 blackBg.BackgroundColor3 = Color3.new(0,0,0)
 blackBg.BorderSizePixel = 0
@@ -27,12 +27,12 @@ local scale = math.min(camera.ViewportSize.X, camera.ViewportSize.Y) / 1080
 
 task.wait(0.5)
 
-local DOT_COUNT = 42
-local RING_MAX_RADIUS = 360 * scale
+本地 DOT_COUNT=42
+局部环_MAX_RADIUS=360****
 local GLOW_DURATION = 0.9
 local LIGHT_BLUE = Color3.fromRGB(135, 206, 250)
 
-local dotsContainer = Instance.new("Frame")
+本地 dotsContainer=Instance
 dotsContainer.Size = UDim2.new(0,0,0,0)
 dotsContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
 dotsContainer.AnchorPoint = Vector2.new(0.5, 0.5)
