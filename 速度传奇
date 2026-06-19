@@ -62,7 +62,7 @@ local Window = WindUI:CreateWindow({
 
 Window:Tag({
     Title = "v1",
-    Color = Color3.fromHex("#FFD700")
+    Color = Color3.fromHex("80FFFF")
 })
 
 Window:CreateTopbarButton("theme-switcher", "moon", function()
