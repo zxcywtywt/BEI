@@ -37,7 +37,7 @@ local Window = WindUI:CreateWindow({
     Icon = "https://raw.githubusercontent.com/ylt410/Liquid-glass-script/refs/heads/main/7A36FBA07BBCDEFDD6267BCFA469ADD4.png",
     Draggable = true,
     IconTransparency = 1,
-    Author = "<font color='#B0E0E6'>请选择您的服务器</font>",
+Author="<font color='#B 0 E 0 E 6'>速度传奇</font>"，
     Folder = "BEI Hub｜Pro Max",
     Size = UDim2.fromOffset(500, 100),
     Transparent = true,
@@ -61,7 +61,7 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:Tag({
-    Title = "v1",
+    Title = "v1.1",
     Color = Color3.fromHex("80FFFF")
 })
 
@@ -225,7 +225,7 @@ local function applyEnemyCollision(character, multiplier)
     if multiplier <= 0 then
         for part, originalState in pairs(data.originalCanCollide) do
             if part:IsDescendantOf(character) then
-                part.CanCollide = originalState
+part.CanCollide = originalState
             end
         end
         HumanoidRootPart.Size = data.originalSize
